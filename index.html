@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Part Guarantee · แยกไฟล์ตาม RSM / PS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>
+:root{--bg:#f6f5f2;--card:#fff;--ink:#1d2329;--sub:#66707a;--line:#e3e0da;--acc:#b5121b;--acc2:#7d0c12;--soft:#fbeeee;--ok:#1f7a4d;--warn:#b26b00;--fill:#fff7d6;--hd:#2f5d8a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "IBM Plex Sans Thai",system-ui,sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:24px 20px 60px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sub)}
+h1{font-size:24px;margin:4px 0 6px}
+header p{color:var(--sub);margin:0 0 18px;max-width:820px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h2{font-size:15px;margin:0 0 4px}
+.sub{color:var(--sub);font-size:12.5px}
+.drop{display:flex;gap:12px;align-items:center;border:1.5px dashed #c9c4bb;border-radius:10px;padding:14px;cursor:pointer;margin-top:8px;background:#fcfbf9}
+.drop:hover,.drop.over{border-color:var(--acc);background:var(--soft)}
+.drop input{display:none}
+.ico{width:36px;height:36px;border-radius:8px;background:var(--soft);color:var(--acc);display:grid;place-items:center;font-size:18px;flex:none}
+.fname{font-weight:600}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.lbl{font-size:12px;color:var(--sub);margin-right:4px;min-width:70px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;cursor:pointer;font:inherit;font-size:13px;color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip .n{opacity:.65;font-size:12px;margin-left:4px}
+.chip:disabled{opacity:.4;cursor:not-allowed}
+button.primary{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer}
+button.primary:hover{background:var(--acc2)}
+button.primary:disabled{background:#ccc;cursor:not-allowed}
+button.ghost{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 14px;font:inherit;cursor:pointer;color:var(--ink)}
+button.ghost:hover{border-color:var(--ink)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:18px 0 10px}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 14px;min-width:110px}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:12px;color:var(--sub)}
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);padding-bottom:0;scrollbar-width:thin}
+.tab{border:1px solid transparent;border-bottom:0;background:none;padding:8px 12px;border-radius:8px 8px 0 0;cursor:pointer;font:inherit;font-size:13px;white-space:nowrap;color:var(--sub)}
+.tab[aria-selected="true"]{background:var(--card);border-color:var(--line);color:var(--ink);font-weight:600;margin-bottom:-1px}
+.tab .n{font-size:11.5px;background:#eee;border-radius:999px;padding:1px 7px;margin-left:5px}
+.panel{background:var(--card);border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px;padding:14px}
+.tblwrap{overflow:auto;max-height:62vh;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;font-size:12.5px;min-width:100%}
+th{position:sticky;top:0;min-width:96px;background:var(--hd);color:#fff;font-weight:600;text-align:left;padding:7px 8px;white-space:pre-line;vertical-align:bottom;z-index:1}
+th.ps{background:#c99a06;min-width:170px}
+td{border-top:1px solid var(--line);padding:6px 8px;vertical-align:top;max-width:340px}
+td.ps{background:var(--fill)}
+td.mono{white-space:nowrap}
+td.mono,.mono{font-family:"IBM Plex Mono",monospace;font-size:12px}
+.miss{margin:8px 0 0;padding:0;list-style:none}
+.miss li{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)}
+.miss select{font:inherit;font-size:13px;padding:4px 6px;border-radius:6px;border:1px solid var(--line)}
+.tag{font-size:11.5px;border-radius:999px;padding:1px 8px;background:#eee}
+.tag.warn{background:#fff1d6;color:var(--warn)}
+.tag.ok{background:#e3f3ea;color:var(--ok)}
+.empty{padding:40px;text-align:center;color:var(--sub)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:9}
+.toast.on{opacity:1}
+.legend{display:flex;gap:14px;align-items:center;font-size:12px;color:var(--sub);margin:8px 0}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+details summary{cursor:pointer;font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Aftersales · Part Guarantee 7 วัน · by Natchanon C.</div>
+  <h1>Part Guarantee · แยกไฟล์ให้ PS กรอก ตาม RSM</h1>
+  <p>ใส่ไฟล์ Part Guarantee Result แล้วเลือกชุด RSM (RSM_1 / RSM_2) และชื่อ RSM ระบบจะแสดงแท็บแยกตาม PS และกด Export เป็น Excel ของ RSM นั้น (1 PS = 1 แท็บ) เพื่อนำไปวางใน Drive ให้ PS กรอก · ไฟล์ประมวลผลในเบราว์เซอร์เท่านั้น</p>
+</header>
+
+<div class="grid">
+  <div class="card">
+    <h2>1 · ไฟล์ Part Guarantee Result</h2>
+    <div class="sub">ไฟล์ Excel ที่มีคอลัมน์ Partner_Store, Repair_Order …</div>
+    <label class="drop" id="dropPg"><input type="file" id="filePg" accept=".xlsx,.xlsm"><div class="ico">⬆</div><div><div class="fname" id="pgName">เลือกไฟล์ หรือลากมาวาง</div><div class="sub" id="pgInfo">ยังไม่ได้ใส่ไฟล์</div></div></label>
+  </div>
+  <div class="card">
+    <h2>2 · ไฟล์ RSM (PS → RSM)</h2>
+    <div class="sub">มี RSM1 / RSM2 ฝังไว้แล้ว · ถ้ามีการเปลี่ยนผู้ดูแล อัปโหลดไฟล์ RSM_for_upload.xlsx ใหม่ได้ (จำไว้ในเครื่องนี้)</div>
+    <label class="drop" id="dropRsm"><input type="file" id="fileRsm" accept=".xlsx,.xlsm"><div class="ico">⇄</div><div><div class="fname" id="rsmName">—</div><div class="sub" id="rsmInfo"></div></div></label>
+    <div class="row" style="margin-top:8px"><button class="ghost" id="rsmReset" type="button">กลับไปใช้ค่าเริ่มต้น</button></div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:14px">
+  <div class="row"><span class="lbl">ชุด RSM</span><span id="setChips" class="row"></span></div>
+  <div class="row" style="margin-top:10px"><span class="lbl">RSM</span><span id="rsmChips" class="row"></span></div>
+</div>
+
+<div id="missBox" class="card" style="margin-top:14px" hidden></div>
+
+<div class="bar">
+  <div class="stats" id="stats"></div>
+  <div class="row">
+    <button class="ghost" id="expAll" type="button" disabled>Export ทุก RSM</button>
+    <button class="primary" id="exp" type="button" disabled>Export Excel ของ RSM นี้</button>
+  </div>
+</div>
+<div class="legend"><span><i class="sw" style="background:var(--hd)"></i>ข้อมูลจากระบบ</span><span><i class="sw" style="background:#c99a06"></i>คอลัมน์ให้ PS กรอก (มี Dropdown ในไฟล์ Excel)</span></div>
+<div class="tabs" id="tabs" role="tablist"></div>
+<div class="panel" id="panel"><div class="empty">ใส่ไฟล์ Part Guarantee Result เพื่อเริ่ม</div></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const RSM_DEFAULT_SETS = [{"name":"RSM1","list":[["","GWM Charansanitwong","BKK&MET","Natchanon"],["","GWM PAG Udomsuk","BKK&MET","Chanrob"],["","GWM P and Y Sukhothai","North","Natthaphol"],["","GWM Anuphas Phuket","South","Natchanon"],["","GWM Amorn Ratchada","BKK&MET","Chanrob"],["","GWM Ek Rayong","Easten","Chanrob"],["","GWM CCC Auto Ubonratchathani","Northeast","Kiattikhun"],["","GWM Great One Auto Chaengwattana","BKK&MET","Chanrob"],["","GWM Eaksaha Korat","Northeast","Chanrob"],["","GWM V Ultimatecar Bang Bua Thong","BKK&MET","Kiattikhun"],["","GWM Prestige Pathumthani","BKK&MET","Kiattikhun"],["","GWM APM Ayutthaya","Central","Natthaphol"],["","GWM Chookiat Krabi","South","Natchanon"],["","GWM Ch.Erawan Ratchaburi","Central","Natthaphol"],["","GWM Maverick Auto Ramkhamhaeng","BKK&MET","Natthaphol"],["","GWM Intertrade Singburi","Central","Pongsakorn"],["","GWM A S Surin","Northeast","Kiattikhun"],["","GWM Chookiat Hatyai","South","Natchanon"],["","GWM CCC Auto Lampang","North","Natthaphol"],["","GWM Pattanachaiyon Loei","Northeast","Kiattikhun"],["","GWM Angelway Chiangrai","North","Natthaphol"],["","GWM Ch.Erawan Kanchanaburi","Central","Natthaphol"],["","GWM PAG Saraburi","Central","Chanrob"],["","GWM CCC Auto Roiet","Northeast","Kiattikhun"],["","GWM Tara Huahin","South","Natchanon"],["","GWM Chookiat Nakhon Si Thammarat","South","Natchanon"],["","GWM Angelway Phayao","North","Natthaphol"],["","GWM Pijitphet Sakonnakhon","Northeast","Kiattikhun"],["","GWM Pijitphet Mukdahan","Northeast","Kiattikhun"],["","GWM Ek Chanthaburi","Easten","Chanrob"],["","GWM Ch.Erawan Suphanburi","Central","Natthaphol"],["","GWM Thairungruang Lopburi","Central","Kiattikhun"],["","GWM Eaksaha Plus Buriram","Northeast","Chanrob"],["","GWM Finn EV Nong Bua Lamphu","Northeast","Kiattikhun"],["","GWM M1X Phitsanulok","North","Natthaphol"],["","GWM BIG AUTO Sisaket","Northeast","Kiattikhun"],["","GWM Sitthiphan Phetchaburi","Central","Natchanon"],["","GWM Startrek Suanluang","BKK&MET","Natthaphol"],["","GWM Iconic Ramintra","BKK&MET","Chanrob"],["","GWM Motor Mall Rama 2","BKK&MET","Natchanon"],["","GWM M1X Maesod","North","Natthaphol"],["","GWM CCC Auto Chiangmai","North","Natthaphol"],["","GWM Prestige Thanyaburi","BKK&MET","Kiattikhun"],["","GWM KT Suratthani","South","Natchanon"],["","GWM First Class Motor Chachoengsao","Easten","Chanrob"],["","GWM Origin Chumphon","South","Natchanon"],["","GWM Suvarnabhumi Ladkrabang","BKK&MET","Natthaphol"],["","GWM PAG Nakhonsawan","North","Chanrob"],["","GWM Premier Srinakarin","BKK&MET","Natthaphol"],["","GWM Nava Auto Navanakorn","BKK&MET","Natchanon"],["","GWM 168 Kanchanaphisek","BKK&MET","Natchanon"],["","GWM One Theparak","BKK&MET","Natthaphol"],["","GWM CCC Auto Chiangmai Maerim","North","Natthaphol"],["","GWM Ch.Erawan Nakhonpathom","Central","Natthaphol"],["","GWM Charoen Auto House Chaiyaphum","Northeast","Chanrob"],["","GWM Areemit Mahasarakham","Northeast","Kiattikhun"],["","GWM CCC Auto Vacharaphol","BKK&MET","Chanrob"],["","GWM Tongcharoen Samutsakhon","Central","Natchanon"],["","GWM Life Nonthaburi","BKK&MET","Kiattikhun"],["","GWM Eaksaha Phahonyothin KM.25","BKK&MET","Chanrob"],["","GWM Anuphas Phuket Kathu","South","Natchanon"],["","GWM Ek Ari","BKK&MET","Kiattikhun"],["","GWM Bangkok Chan Road","BKK&MET","Natchanon"],["","GWM YAS YALA","South","Natchanon"],["","GWM Teeka Udonthani","Northeast","Kiattikhun"],["","GWM Karman Wongsawang","BKK&MET","Kiattikhun"],["","GWM Ek Rayong Pluakdaeng","Central","Chanrob"],["","GWM Chookiat Songkhla","South","Natchanon"],["","GWM MM Lamphun","North","Natthaphol"],["","GWM Sahachai EV Plus Khonkaen","Northeast","Kiattikhun"],["","GWM Ek Chonburi","Easten","Chanrob"],["","GWM Ek Pattaya","Easten","Chanrob"],["","GWM A.N.N. Pattani","South","Natchanon"],["","GWM Mundee Kalasin","Northeast","Kiattikhun"],["","GWM AAG Rangsit","BKK&MET","Natthaphol"],["","GWM E.V.S Plus Nonthaburi","BKK&MET","Kiattikhun"],["","GWM Thaiyont Next Sisaket","Northeast","Kiattikhun"],["","GWM Metro Hathairat","BKK&MET","Chanrob"],["","GWM Maporn Lamlukka","BKK&MET","Natchanon"]]},{"name":"RSM2","list":[["","GWM Charansanitwong","BKK&MET","Natchanon"],["","GWM PAG Udomsuk","BKK&MET","Chanrob"],["","GWM P and Y Sukhothai","North","Natthaphol"],["","GWM Anuphas Phuket","South","Naruwit"],["","GWM Amorn Ratchada","BKK&MET","Yuthtaphon"],["","GWM Ek Rayong","Easten","Chanrob"],["","GWM CCC Auto Ubonratchathani","Northeast","Kiattikhun"],["","GWM Great One Auto Chaengwattana","BKK&MET","Naruwit"],["","GWM Eaksaha Korat","Northeast","Naruwit"],["","GWM V Ultimatecar Bang Bua Thong","BKK&MET","Kiattikhun"],["","GWM Prestige Pathumthani","BKK&MET","Yuthtaphon"],["","GWM APM Ayutthaya","Central","Yuthtaphon"],["","GWM Chookiat Krabi","South","Natchanon"],["","GWM Ch.Erawan Ratchaburi","Central","Yuthtaphon"],["","GWM Maverick Auto Ramkhamhaeng","BKK&MET","Natthaphol"],["","GWM Intertrade Singburi","Central","Terminated"],["","GWM A S Surin","Northeast","Naruwit"],["","GWM Chookiat Hatyai","South","Natchanon"],["","GWM CCC Auto Lampang","North","Natthaphol"],["","GWM Pattanachaiyon Loei","Northeast","Kiattikhun"],["","GWM Angelway Chiangrai","North","Natthaphol"],["","GWM Ch.Erawan Kanchanaburi","Central","Natthaphol"],["","GWM PAG Saraburi","Central","Chanrob"],["","GWM CCC Auto Roiet","Northeast","Kiattikhun"],["","GWM Tara Huahin","South","Naruwit"],["","GWM Chookiat Nakhon Si Thammarat","South","Natchanon"],["","GWM Angelway Phayao","North","Natthaphol"],["","GWM Pijitphet Sakonnakhon","Northeast","Kiattikhun"],["","GWM Pijitphet Mukdahan","Northeast","Kiattikhun"],["","GWM Ek Chanthaburi","Easten","Chanrob"],["","GWM Ch.Erawan Suphanburi","Central","Yuthtaphon"],["","GWM Thairungruang Lopburi","Central","Yuthtaphon"],["","GWM Eaksaha Plus Buriram","Northeast","Naruwit"],["","GWM Finn EV Nong Bua Lamphu","Northeast","Kiattikhun"],["","GWM M1X Phitsanulok","North","Natthaphol"],["","GWM BIG AUTO Sisaket","Northeast","Kiattikhun"],["","GWM Sitthiphan Phetchaburi","Central","Naruwit"],["","GWM Startrek Suanluang","BKK&MET","Natthaphol"],["","GWM Iconic Ramintra","BKK&MET","Chanrob"],["","GWM Motor Mall Rama 2","BKK&MET","Natchanon"],["","GWM M1X Maesod","North","Natthaphol"],["","GWM CCC Auto Chiangmai","North","Natthaphol"],["","GWM Prestige Thanyaburi","BKK&MET","Yuthtaphon"],["","GWM KT Suratthani","South","Natchanon"],["","GWM First Class Motor Chachoengsao","Easten","Chanrob"],["","GWM Origin Chumphon","South","Natchanon"],["","GWM Suvarnabhumi Ladkrabang","BKK&MET","Yuthtaphon"],["","GWM PAG Nakhonsawan","North","Chanrob"],["","GWM Premier Srinakarin","BKK&MET","Natthaphol"],["","GWM Nava Auto Navanakorn","BKK&MET","Naruwit"],["","GWM 168 Kanchanaphisek","BKK&MET","Natchanon"],["","GWM One Theparak","BKK&MET","Natthaphol"],["","GWM CCC Auto Chiangmai Maerim","North","Natthaphol"],["","GWM Ch.Erawan Nakhonpathom","Central","Yuthtaphon"],["","GWM Charoen Auto House Chaiyaphum","Northeast","Chanrob"],["","GWM Areemit Mahasarakham","Northeast","Kiattikhun"],["","GWM CCC Auto Vacharaphol","BKK&MET","Chanrob"],["","GWM Tongcharoen Samutsakhon","Central","Yuthtaphon"],["","GWM Life Nonthaburi","BKK&MET","Kiattikhun"],["","GWM Eaksaha Phahonyothin KM.25","BKK&MET","Chanrob"],["","GWM Anuphas Phuket Kathu","South","Naruwit"],["","GWM Ek Ari","BKK&MET","Kiattikhun"],["","GWM Bangkok Chan Road","BKK&MET","Natchanon"],["","GWM YAS YALA","South","Natchanon"],["","GWM Teeka Udonthani","Northeast","Kiattikhun"],["","GWM Karman Wongsawang","BKK&MET","Kiattikhun"],["","GWM Ek Rayong Pluakdaeng","Central","Chanrob"],["","GWM Chookiat Songkhla","South","Natchanon"],["","GWM MM Lamphun","North","Natthaphol"],["","GWM Sahachai EV Plus Khonkaen","Northeast","Kiattikhun"],["","GWM Ek Chonburi","Easten","Chanrob"],["","GWM Ek Pattaya","Easten","Chanrob"],["","GWM A.N.N. Pattani","South","Natchanon"],["","GWM Mundee Kalasin","Northeast","Kiattikhun"],["","GWM AAG Rangsit","BKK&MET","Naruwit"],["","GWM E.V.S Plus Nonthaburi","BKK&MET","Kiattikhun"],["","GWM Thaiyont Next Sisaket","Northeast","Naruwit"],["","GWM Metro Hathairat","BKK&MET","Yuthtaphon"],["","GWM Maporn Lamlukka","BKK&MET","Naruwit"]]}];
+// ชื่อใน Part Guarantee ที่ไม่ตรงกับไฟล์ RSM → ชื่อในไฟล์ RSM
+const ALIAS = {
+ 'chookiathatyaiwarehouse':'GWM Chookiat Hatyai','greatonechaengwattana':'GWM Great One Auto Chaengwattana',
+ 'จรัญสนิทวงศ์':'GWM Charansanitwong','ubon':'GWM CCC Auto Ubonratchathani','chorerawankanchanaburi':'GWM Ch.Erawan Kanchanaburi',
+ 'chorerawanratchaburi':'GWM Ch.Erawan Ratchaburi','chorerawansuphanburi':'GWM Ch.Erawan Suphanburi','cherawansuphanburi':'GWM Ch.Erawan Suphanburi',
+ 'eaksahaplusburirum':'GWM Eaksaha Plus Buriram','lampang':'GWM CCC Auto Lampang','pysukhothai':'GWM P and Y Sukhothai',
+ 'pattanachaiyontloei':'GWM Pattanachaiyon Loei','metrohatairat':'GWM Metro Hathairat','amornratchadaparts':'GWM Amorn Ratchada',
+ 'pijitphetsakonnakorn':'GWM Pijitphet Sakonnakhon','evsplusnonthaburi':'GWM E.V.S Plus Nonthaburi','asurin':'GWM A S Surin','assurin':'GWM A S Surin'
+};
+// ชื่อเดิม ↔ ชื่อใหม่ (จาก Sheet2 Before/After ในไฟล์ Part Guarantee จะเติมให้อัตโนมัติ)
+let RENAME = [['GWM Phra Nakorn Nakhonsawan','GWM PAG Nakhonsawan'],['GWM Phra Nakorn Saraburi','GWM PAG Saraburi'],['GWM Phra Nakorn Udomsuk','GWM PAG Udomsuk'],['GWM Mahanakhon Phahonyothin KM.25','GWM Eaksaha Phahonyothin KM.25'],['GWM Life Nonthaburi','GWM E.V.S Plus Nonthaburi'],['GWM Nava Auto Navanakorn','GWM ITG Auto Navanakorn']];
+// คอลัมน์ที่ให้ PS กรอก (ตรวจจากชื่อหัวคอลัมน์) + dropdown
+const PS_COLS = [
+ {re:/confirmpart|readiness/, list:['Yes','No']},
+ {re:/rootcause/, list:null},
+ {re:/reposibility|responsibility|gwmpartner/, list:['GWM','Partner']}
+];
+const $ = id => document.getElementById(id);
+const norm = s => String(s ?? '').toLowerCase().replace(/[\s_\-.\n'"]/g,'');
+const nkey = s => String(s ?? '').toLowerCase().trim().replace(/^great\s*wall\s*motor\s*/,'').replace(/^\s*gwm\s*/,'').replace(/[\s_\-.,&'()\/]+/g,'');
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const LS = {get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}}, set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}, del(k){try{localStorage.removeItem(k)}catch(e){}}};
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),3200)}
+
+/* ---------- state ---------- */
+let book = LS.get('pgRsmBook', null);           // {source, sets:[{name,list:[[code,store,region,rsm]]}]}
+if (!book || !Array.isArray(book.sets) || !book.sets.length) book = null;
+const defaultBook = () => ({source:'RSM_for_upload.xlsx (ฝังในหน้า)', isDefault:true, sets:RSM_DEFAULT_SETS});
+let curSet = LS.get('pgRsmSet', '');
+let manual = LS.get('pgManual', {});           // nkey(store) → rsm (กำหนดเองต่อชุด) : {setName:{key:rsm}}
+let pg = null;                                  // {fileName, sheetName, headers:[{name,width,numFmt,ps,list}], rows:[[...]], storeCol}
+let curRsm = LS.get('pgRsm',''), curTab = null;
+
+const B = () => book || defaultBook();
+function setObj(){ const b=B(); return b.sets.find(s=>s.name===curSet) || b.sets.find(s=>/2/.test(s.name)) || b.sets[0]; }
+
+/* ---------- matching ---------- */
+function similar(a,b){a=nkey(a);b=nkey(b);if(!a||!b)return 0;const g=s=>{const m=new Map();for(let i=0;i<s.length-1;i++){const x=s.slice(i,i+2);m.set(x,(m.get(x)||0)+1)}return m};const A=g(a),C=g(b);let h=0;for(const[x,n]of A)h+=Math.min(n,C.get(x)||0);return 2*h/Math.max(1,a.length-1+b.length-1)}
+const firstWord = s => String(s??'').toLowerCase().replace(/^great\s*wall\s*motor\s*/,'').replace(/[.,()&]/g,' ').split(/\s+/).filter(w=>w&&!/^(gwm|co|ltd)$/.test(w))[0]||'';
+function resolve(store){
+  const S = setObj(), idx = new Map(S.list.map(x=>[nkey(x[1]),x]));
+  const m = (manual[S.name]||{})[nkey(store)];
+  if (m) return {rsm:m, how:'manual'};
+  const tryKeys = [nkey(store)];
+  if (ALIAS[nkey(store)]) tryKeys.push(nkey(ALIAS[nkey(store)]));
+  for (const k of [...tryKeys]) for (const [a,b] of RENAME){ if (nkey(a)===k) tryKeys.push(nkey(b)); if (nkey(b)===k) tryKeys.push(nkey(a)); }
+  for (const k of tryKeys){ const hit = idx.get(k); if (hit) return {rsm:hit[3], how: k===tryKeys[0]?'exact':'alias', to:hit[1]}; }
+  let best=null, sc=0; const w0=firstWord(store);
+  for (const x of S.list){ if (firstWord(x[1])!==w0) continue; const s=similar(store,x[1]); if(s>sc){sc=s;best=x} }
+  if (best && sc>=0.6) return {rsm:best[3], how:'fuzzy', to:best[1]};
+  return {rsm:null, how:'none'};
+}
+
+/* ---------- read files ---------- */
+function cellVal(v){
+  if (v==null) return null;
+  if (v instanceof Date) return v;
+  if (typeof v==='object'){
+    if (v.richText) return v.richText.map(t=>t.text).join('');
+    if ('result' in v) return cellVal(v.result);
+    if (v.text!=null) return v.text;
+    if (v.error) return null;
+  }
+  return v;
+}
+async function readWb(file){ const wb = new ExcelJS.Workbook(); await wb.xlsx.load(await file.arrayBuffer()); return wb; }
+
+async function loadPg(file){
+  try{
+    const wb = await readWb(file); let found=null;
+    wb.eachSheet(ws=>{ if(found) return; for(let r=1;r<=Math.min(10,ws.rowCount);r++){ const row=ws.getRow(r); let sc=-1; row.eachCell({includeEmpty:false},(c,i)=>{ if(/^partner_?store$|^store_?name$/.test(norm(c.value))) sc=i; }); if(sc>0){found={ws,hr:r,sc};break;} } });
+    if(!found){ toast('ไม่พบคอลัมน์ Partner_Store ในไฟล์นี้'); return; }
+    const {ws,hr,sc}=found, hrow=ws.getRow(hr), lastCol=Math.max(hrow.cellCount, ws.columnCount);
+    const cols=[]; for(let c=1;c<=lastCol;c++){ const h=cellVal(hrow.getCell(c).value); cols.push({c, name: h==null?'':String(h), width: ws.getColumn(c).width||14}); }
+    const rows=[];
+    for(let r=hr+1;r<=ws.rowCount;r++){ const row=ws.getRow(r); const vals=cols.map(k=>cellVal(row.getCell(k.c).value)); if(vals.every(v=>v==null||v==='')) continue; rows.push(vals); }
+    cols.forEach((k,i)=>{ const f=rows.find(v=>v[i]!=null); k.numFmt = f!==undefined ? (ws.getRow(hr+1).getCell(k.c).numFmt || (f[i] instanceof Date ? 'dd/mm/yyyy hh:mm' : null)) : null;
+      k.isDate = rows.some(v=>v[i] instanceof Date);
+      const dateOnly = k.isDate && rows.every(v=>!(v[i] instanceof Date) || (v[i].getUTCHours()===0 && v[i].getUTCMinutes()===0));
+      if (k.isDate && (!k.numFmt || k.numFmt==='General')) k.numFmt = dateOnly ? 'dd/mm/yyyy' : 'dd/mm/yyyy hh:mm';
+      const p = PS_COLS.find(p=>p.re.test(norm(k.name))); k.ps=!!p; k.list=p?p.list:null;
+      k.junk = (/^column\d*$/i.test(norm(k.name)) || !k.name) && rows.every(v=>v[i]==null||v[i]==='');
+    });
+    // Sheet2 Before/After → rename pairs
+    wb.eachSheet(s=>{ for(let r=1;r<=Math.min(5,s.rowCount);r++){ const row=s.getRow(r); let bi=-1,ai=-1; row.eachCell((c,i)=>{const n=norm(c.value); if(n==='before')bi=i; if(n==='after')ai=i;}); if(bi>0&&ai>0){ for(let q=r+1;q<=s.rowCount;q++){ const a=cellVal(s.getRow(q).getCell(bi).value), b=cellVal(s.getRow(q).getCell(ai).value); if(a&&b&&!RENAME.some(p=>nkey(p[0])===nkey(a))) RENAME.push([String(a),String(b)]); } break; } } });
+    pg={fileName:file.name, sheetName:ws.name, cols:cols.filter(k=>!k.junk), rows:null, storeIdx:null};
+    const keep=cols.map((k,i)=>k.junk?-1:i).filter(i=>i>=0);
+    pg.rows=rows.map(v=>keep.map(i=>v[i])); pg.storeIdx=pg.cols.findIndex(k=>k.c===sc);
+    $('pgName').textContent=file.name; $('pgInfo').textContent=`ชีต ${ws.name} · ${rows.length.toLocaleString()} RO · ${new Set(pg.rows.map(r=>r[pg.storeIdx])).size} PS`;
+    curTab=null; render();
+  }catch(e){ console.error(e); toast('อ่านไฟล์ไม่ได้: '+(e.message||e)); }
+}
+
+async function loadRsm(file){
+  try{
+    const wb=await readWb(file), sets=[];
+    wb.eachSheet(ws=>{
+      for(let r=1;r<=Math.min(30,ws.rowCount);r++){
+        const h=[]; ws.getRow(r).eachCell({includeEmpty:true},(c,i)=>h[i]=norm(cellVal(c.value)));
+        const rc=h.findIndex(x=>x&&/^rsm\d*$/.test(x)), sc=h.findIndex(x=>x&&/^(partnerstore|storename|store|partner|partnername|dealer|dealername|psname)$/.test(x));
+        if(rc<0||sc<0) continue;
+        const cc=h.findIndex(x=>x&&/pscode|partnercode|code/.test(x)), gc=h.findIndex(x=>x&&/region|zone|ภาค/.test(x));
+        const list=[];
+        for(let q=r+1;q<=ws.rowCount;q++){ const row=ws.getRow(q); const st=cellVal(row.getCell(sc).value), rs=cellVal(row.getCell(rc).value);
+          if(st&&rs&&!/^rsm\d*$/.test(norm(rs))) list.push([cc>0?String(cellVal(row.getCell(cc).value)??''):'', String(st).trim(), gc>0?String(cellVal(row.getCell(gc).value)??'').trim():'', String(rs).trim()]); }
+        if(list.length){ sets.push({name:ws.name.trim(), list}); break; }
+      }
+    });
+    if(!sets.length){ toast('ไม่พบคอลัมน์ Partner Store และ RSM ในไฟล์นี้'); return; }
+    book={source:file.name, sets}; LS.set('pgRsmBook',book);
+    curSet = (sets.find(s=>/2/.test(s.name))||sets[0]).name; LS.set('pgRsmSet',curSet);
+    toast(`ใช้ไฟล์ RSM ${file.name} (${sets.map(s=>s.name+' '+s.list.length+' PS').join(' · ')})`); render();
+  }catch(e){ console.error(e); toast('อ่านไฟล์ RSM ไม่ได้'); }
+}
+
+/* ---------- group ---------- */
+function groups(){
+  if(!pg) return null;
+  const by=new Map();  // rsm → Map(store → rows)
+  const res=new Map();
+  for(const r of pg.rows){ const st=String(r[pg.storeIdx]??'').trim()||'(ไม่ระบุ Store)'; if(!res.has(st)) res.set(st,resolve(st)); const rsm=res.get(st).rsm||'ไม่ระบุ RSM';
+    if(!by.has(rsm)) by.set(rsm,new Map()); const m=by.get(rsm); if(!m.has(st)) m.set(st,[]); m.get(st).push(r); }
+  return {by,res};
+}
+const rsmList = () => [...new Set(setObj().list.map(x=>x[3]))].filter(x=>!/^n\/?a$|terminated/i.test(x)).sort();
+
+/* ---------- render ---------- */
+function render(){
+  const b=B(), S=setObj(); curSet=S.name;
+  $('rsmName').textContent=b.source; $('rsmInfo').textContent=b.sets.map(s=>`${s.name}: ${s.list.length} PS`).join(' · ') + (b.isDefault?' · อัปโหลดไฟล์ใหม่เมื่อมีการเปลี่ยน RSM':'');
+  $('setChips').innerHTML=b.sets.map(s=>`<button type="button" class="chip" data-set="${esc(s.name)}" aria-pressed="${s.name===S.name}">${esc(s.name)}${/2/.test(s.name)?' (ใหม่)':/1/.test(s.name)?' (เดิม)':''}</button>`).join('') || '';
+  const G=groups();
+  const names=rsmList(); if(G) for(const k of G.by.keys()) if(!names.includes(k)) names.push(k);
+  if(G) for(let i=names.length-1;i>=0;i--) if(!G.by.get(names[i])) names.splice(i,1);
+  if(!names.includes(curRsm)) curRsm = names.includes('Natchanon')?'Natchanon':names[0];
+  $('rsmChips').innerHTML=names.map(n=>{ const m=G&&G.by.get(n); const cnt=m?[...m.values()].reduce((a,x)=>a+x.length,0):0; return `<button type="button" class="chip" data-rsm="${esc(n)}" aria-pressed="${n===curRsm}">${esc(n)}${G?`<span class="n">${m?m.size:0} PS · ${cnt}</span>`:''}</button>`; }).join('');
+  $('exp').disabled=!G||!G.by.get(curRsm); $('expAll').disabled=!G;
+  renderMiss(G); renderTabs(G);
+}
+function renderMiss(G){
+  const box=$('missBox'); if(!G){box.hidden=true;return;}
+  const items=[...G.res].filter(([s,r])=>r.how!=='exact').sort((a,b)=>(a[1].rsm?1:0)-(b[1].rsm?1:0));
+  if(!items.length){box.hidden=true;return;}
+  const opts=rsmList(); const none=items.filter(x=>!x[1].rsm).length;
+  box.hidden=false;
+  box.innerHTML=`<details ${none?'open':''}><summary><b>${none?`มี ${none} PS ที่ยังไม่รู้ RSM`:'ทุก PS มี RSM ครบ'}</b> · ${items.length-none} ชื่อจับคู่จากชื่อใกล้เคียง/ชื่อเดิม (ตรวจสอบได้ เปลี่ยนได้)</summary>
+  <ul class="miss">${items.map(([s,r])=>`<li><span>${esc(s)}</span> ${r.how==='none'?'<span class="tag warn">ไม่พบ</span>':r.how==='manual'?'<span class="tag ok">กำหนดเอง</span>':`<span class="tag">${r.how==='fuzzy'?'ชื่อใกล้เคียง':'ชื่อเดิม/alias'} → ${esc(r.to)}</span>`}
+   → <select data-store="${esc(s)}"><option value="">${r.rsm&&r.how!=='manual'?'อัตโนมัติ: '+esc(r.rsm):'— เลือก RSM —'}</option>${opts.map(o=>`<option ${r.how==='manual'&&r.rsm===o?'selected':''}>${esc(o)}</option>`).join('')}</select></li>`).join('')}</ul>
+  <div class="sub" style="margin-top:6px">ที่เลือกเองจะจำไว้ในเครื่องนี้ แยกตามชุด RSM</div></details>`;
+}
+const fmt = (v,k) => v instanceof Date ? (k.numFmt&&/h/.test(k.numFmt) ? v.toISOString().slice(0,16).replace('T',' ') : v.toISOString().slice(0,10)).replace(/^(\d{4})-(\d\d)-(\d\d)/,'$3/$2/$1') : (v??'');
+function renderTabs(G){
+  const tabs=$('tabs'), panel=$('panel'), st=$('stats');
+  if(!G){tabs.innerHTML='';st.innerHTML='';return;}
+  const m=G.by.get(curRsm);
+  if(!m){tabs.innerHTML='';st.innerHTML='';panel.innerHTML=`<div class="empty">ไม่มี RO ของ ${esc(curRsm)} ในไฟล์นี้</div>`;return;}
+  const stores=[...m.keys()].sort((a,b)=>a.localeCompare(b));
+  if(!stores.includes(curTab)) curTab=stores[0];
+  const total=[...m.values()].reduce((a,x)=>a+x.length,0);
+  const psIdx=pg.cols.findIndex(k=>k.ps); const filled=[...m.values()].flat().filter(r=>psIdx>=0&&r[psIdx]!=null&&r[psIdx]!=='').length;
+  st.innerHTML=`<div class="stat"><b>${stores.length}</b><span>PS</span></div><div class="stat"><b>${total}</b><span>RO</span></div><div class="stat"><b>${filled}</b><span>กรอกแล้ว (${psIdx>=0?esc(pg.cols[psIdx].name.split('\n')[0]):'-'})</span></div>`;
+  tabs.innerHTML=stores.map(s=>`<button class="tab" role="tab" data-tab="${esc(s)}" aria-selected="${s===curTab}">${esc(s.replace(/^GWM\s*/i,''))}<span class="n">${m.get(s).length}</span></button>`).join('');
+  const rows=m.get(curTab);
+  panel.innerHTML=`<div class="tblwrap"><table><thead><tr><th>#</th>${pg.cols.map(k=>`<th class="${k.ps?'ps':''}">${esc(k.name)}</th>`).join('')}</tr></thead><tbody>${rows.map((r,i)=>`<tr><td class="sub">${i+1}</td>${r.map((v,j)=>{const k=pg.cols[j];return `<td class="${k.ps?'ps':''}${/order|vin|userid/i.test(k.name)?' mono':''}">${esc(fmt(v,k))}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+
+/* ---------- export ---------- */
+const sheetName = (s,used) => { let n=String(s).replace(/^GWM\s*/i,'').replace(/[\[\]:*?\/\\]/g,' ').replace(/\s+/g,' ').trim().slice(0,31)||'PS'; let base=n,i=2; while(used.has(n.toLowerCase())){ const suf=' ('+(i++)+')'; n=base.slice(0,31-suf.length)+suf; } used.add(n.toLowerCase()); return n; };
+const colL = n => { let s=''; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26);} return s; };
+async function buildWb(rsm, m){
+  const wb=new ExcelJS.Workbook(); wb.creator='Natchanon C.'; wb.created=new Date();
+  const used=new Set(), stores=[...m.keys()].sort((a,b)=>a.localeCompare(b));
+  for(const st of stores){
+    const rows=m.get(st), ws=wb.addWorksheet(sheetName(st,used),{views:[{state:'frozen',ySplit:1}]});
+    ws.columns=pg.cols.map(k=>({header:k.name, width:Math.min(Math.max(k.width||12,10),60)}));
+    const h=ws.getRow(1); h.height=42;
+    pg.cols.forEach((k,i)=>{ const c=h.getCell(i+1); c.font={bold:true,color:{argb:k.ps?'FF000000':'FFFFFFFF'}}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:k.ps?'FFFFC000':'FF5B9BD5'}}; c.alignment={vertical:'middle',horizontal:'center',wrapText:true}; c.border={top:{style:'thin'},left:{style:'thin'},bottom:{style:'thin'},right:{style:'thin'}}; });
+    rows.forEach(r=>{ const row=ws.addRow(r.map(v=>v instanceof Date? v : v)); });
+    const n=rows.length;
+    pg.cols.forEach((k,i)=>{ const L=colL(i+1);
+      for(let q=2;q<=n+1;q++){ const c=ws.getCell(L+q); if(k.numFmt) c.numFmt=k.numFmt; c.border={top:{style:'thin',color:{argb:'FFD9D9D9'}},left:{style:'thin',color:{argb:'FFD9D9D9'}},bottom:{style:'thin',color:{argb:'FFD9D9D9'}},right:{style:'thin',color:{argb:'FFD9D9D9'}}}; c.alignment={vertical:'top',wrapText:/root|repair_?type|7_?days/i.test(norm(k.name))};
+        if(k.ps) c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF2CC'}};
+      }
+      if(k.ps && k.list && n) ws.dataValidations.add(`${L}2:${L}${n+1}`, {type:'list',allowBlank:true,formulae:['"'+k.list.join(',')+'"'],showErrorMessage:true,errorStyle:'warning',errorTitle:'เลือกจากรายการ',error:'กรุณาเลือก '+k.list.join(' / ')});
+    });
+    ws.autoFilter={from:'A1',to:colL(pg.cols.length)+'1'};
+  }
+  return wb.xlsx.writeBuffer();
+}
+let dlP=null; const getDl=()=> dlP || (dlP = (window.claude&&typeof window.claude.use==='function') ? window.claude.use('downloads').catch(()=>null) : Promise.resolve(null));
+getDl();
+async function saveFile(name, buf){
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const d=await getDl();
+  if(d){ try{ await d.save({filename:name,data:blob}); toast('บันทึก '+name+' แล้ว'); }catch(e){ toast(e&&e.code==='declined'?'ยกเลิกการดาวน์โหลด':e&&e.code==='rate_limited'?'มีหน้าต่างยืนยันค้างอยู่ ลองใหม่อีกครั้ง':'ดาวน์โหลดไม่สำเร็จ: '+(e&&e.message||'')); } return; }
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500); toast('บันทึก '+name+' แล้ว');
+}
+const baseName = () => pg.fileName.replace(/\.[^.]+$/,'').replace(/^[0-9a-f]{6,}-\d+_/i,'');
+async function exportRsm(rsm){ const G=groups(), m=G&&G.by.get(rsm); if(!m) return; const buf=await buildWb(rsm,m); await saveFile(`${baseName()}_${rsm.replace(/[^\wก-๙]+/g,'_')}.xlsx`, buf); }
+
+/* ---------- events ---------- */
+function wireDrop(lab,input,fn){ input.addEventListener('change',e=>{const f=e.target.files[0]; if(f) fn(f); input.value='';});
+  ['dragenter','dragover'].forEach(t=>lab.addEventListener(t,e=>{e.preventDefault();lab.classList.add('over')}));
+  ['dragleave','drop'].forEach(t=>lab.addEventListener(t,e=>{e.preventDefault();lab.classList.remove('over')}));
+  lab.addEventListener('drop',e=>{const f=e.dataTransfer.files[0]; if(f) fn(f);}); }
+wireDrop($('dropPg'),$('filePg'),loadPg); wireDrop($('dropRsm'),$('fileRsm'),loadRsm);
+$('rsmReset').addEventListener('click',()=>{book=null;LS.del('pgRsmBook');curSet='';LS.del('pgRsmSet');render();toast('กลับมาใช้ไฟล์ RSM ค่าเริ่มต้นแล้ว')});
+document.addEventListener('click',e=>{
+  const s=e.target.closest('[data-set]'); if(s){curSet=s.dataset.set;LS.set('pgRsmSet',curSet);curTab=null;render();return;}
+  const r=e.target.closest('[data-rsm]'); if(r){curRsm=r.dataset.rsm;LS.set('pgRsm',curRsm);curTab=null;render();return;}
+  const t=e.target.closest('[data-tab]'); if(t){curTab=t.dataset.tab;renderTabs(groups());return;}
+});
+document.addEventListener('change',e=>{ const sel=e.target.closest('select[data-store]'); if(!sel) return; const S=setObj().name; manual[S]=manual[S]||{}; const k=nkey(sel.dataset.store); if(sel.value) manual[S][k]=sel.value; else delete manual[S][k]; LS.set('pgManual',manual); render(); });
+$('exp').addEventListener('click',async e=>{ e.target.disabled=true; try{ await exportRsm(curRsm); }finally{ e.target.disabled=false; } });
+$('expAll').addEventListener('click',async e=>{ e.target.disabled=true; try{ const G=groups(); for(const rsm of G.by.keys()){ if(rsm==='ไม่ระบุ RSM') continue; await exportRsm(rsm); } }finally{ e.target.disabled=false; } });
+render();
+</script>
+</body>
+</html>
